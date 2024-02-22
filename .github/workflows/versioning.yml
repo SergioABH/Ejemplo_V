@@ -53,6 +53,12 @@ jobs:
 
           echo "::set-output name=version::$version"
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add .
+      
       - name: Bump Version
         run: npm version ${{ steps.determine_version.outputs.version }} --allow-same-version
 
