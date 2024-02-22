@@ -27,36 +27,47 @@ jobs:
           base_branch=$(jq -r '.base.ref' $GITHUB_EVENT_PATH)
           head_branch=$(jq -r '.head.ref' $GITHUB_EVENT_PATH)
 
-          if [[ "$base_branch" == "qa" && "$head_branch" == "main" ]]; then
-            version_type="minor"
-            if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
-              version_type="patch"
-            fi
-            version="${version_type}"
-          elif [[ "$base_branch" == "dev" ]]; then
-            if [[ "$head_branch" == "qa" ]]; then
-              version_type="minor"
-              if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
-                version_type="patch"
-              fi
-              version="${version_type}"
-            elif [[ "$head_branch" =~ ^fix\/.*$ ]]; then
-              version="prepatch"
-            elif [[ "$head_branch" =~ ^feature\/.*$ ]]; then
+          if [[ "$base_branch" == "dev" ]]; then
+            # Feature branches
+            if [[ "$head_branch" =~ ^feature\/ ]]; then
               version="preminor"
+
+            # Fix branches
+            elif [[ "$head_branch" =~ ^fix\/ ]]; then
+              version="prepatch"
+
+            # Other branches on dev
             else
               version="patch"
             fi
+
+          # Branches merged to main
+          elif [[ "$base_branch" == "qa" && "$head_branch" == "main" ]]; then
+            # Check for existing tags
+            if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
+              version="patch"
+            else
+              version="minor"
+            fi
+
+          # Other branches
           else
             version="patch"
           fi
 
           echo "::set-output name=version::$version"
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add .
+          git commit -m "Committing changes before version bump"
+
       - name: Bump Version
         run: npm version ${{ steps.determine_version.outputs.version }} --allow-same-version
 
       - name: Push Changes
         run: |
-          git push origin $GITHUB_HEAD_REF
+          git push origin HEAD:${{ github.head_ref }}
           git push --tags
