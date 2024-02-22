@@ -40,9 +40,9 @@ jobs:
                 version_type="patch"
               fi
               version="${version_type}"
-            elif [[ "$head_branch" =~ ^fix\/.*$ ]]; then
+            elif [[ "$head_branch" =~ "fix/" ]]; then
               version="prepatch"
-            elif [[ "$head_branch" =~ ^feature\/.*$ ]]; then
+            elif [[ "$head_branch" =~ "feature/" ]]; then
               version="preminor"
             else
               version="patch"
@@ -53,10 +53,17 @@ jobs:
 
           echo "::set-output name=version::$version"
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add .
+          git commit -m "Committing changes before version bump"
+      
       - name: Bump Version
         run: npm version ${{ steps.determine_version.outputs.version }} --allow-same-version
 
       - name: Push Changes
         run: |
-          git push origin $GITHUB_HEAD_REF
+          git push origin HEAD:${{ github.head_ref }}
           git push --tags
