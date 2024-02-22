@@ -27,13 +27,16 @@ jobs:
           base_branch=$(jq -r '.base.ref' $GITHUB_EVENT_PATH)
           head_branch=$(jq -r '.head.ref' $GITHUB_EVENT_PATH)
 
+          feature_prefix="feature/"
+          fix_prefix="fix/"
+
           if [[ "$base_branch" == "dev" ]]; then
             # Feature branches
-            if [[ "$head_branch" =~ ^feature\/ ]]; then
+            if [[ "$head_branch" =~ ^$feature_prefix ]]; then
               version="preminor"
 
             # Fix branches
-            elif [[ "$head_branch" =~ ^fix\/ ]]; then
+            elif [[ "$head_branch" =~ ^$fix_prefix ]]; then
               version="prepatch"
 
             # Other branches on dev
