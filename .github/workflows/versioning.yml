@@ -35,7 +35,7 @@ jobs:
               version_type="patch"
             fi
             version="${version_type}"
-          elif [[ "$base_branch" == "develop" ]]; then
+          elif [[ "$base_branch" == "dev" ]]; then
             if [[ "$head_branch" == "qa" ]]; then
               # Lógica para determinar si aumentar como minor o patch
               # Puedes ajustar esta lógica según tus propias reglas
