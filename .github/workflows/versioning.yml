@@ -61,14 +61,9 @@ jobs:
           git commit -m "Committing changes before version bump"
       
       - name: Bump Version
+        run: npm version ${{ steps.determine_version.outputs.version }} --allow-same-version
+
+      - name: Push Changes
         run: |
-          npm version ${{ steps.determine_version.outputs.version }}
-          git tag -d v${{ steps.determine_version.outputs.version }} || true
-          if [[ "$(git diff --name-only)" != "" ]]; then
-            git add .
-            git commit -m "Bump version to ${{ steps.determine_version.outputs.version }}"
-            git push origin HEAD:${{ github.head_ref }}
-            git push --tags
-          else
-            echo "No changes to commit"
-          fi
+          git push origin HEAD:${{ github.head_ref }}
+          git push --tags
