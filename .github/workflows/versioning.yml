@@ -63,6 +63,7 @@ jobs:
       - name: Bump Version
         run: |
           npm version ${{ steps.determine_version.outputs.version }}
+          git tag -d v${{ steps.determine_version.outputs.version }} || true
           if [[ "$(git diff --name-only)" != "" ]]; then
             git add .
             git commit -m "Bump version to ${{ steps.determine_version.outputs.version }}"
