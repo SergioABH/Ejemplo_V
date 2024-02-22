@@ -44,7 +44,11 @@ jobs:
               version="prepatch"
             elif [[ "$head_branch" =~ "feature/" ]]; then
               version="preminor"
+            else
+              version="preminor"
             fi
+          else
+            version="patch"
           fi
 
           echo "::set-output name=version::$version"
