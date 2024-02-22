@@ -45,10 +45,10 @@ jobs:
             elif [[ "$head_branch" =~ "feature/" ]]; then
               version="preminor"
             else
-              version="preminor"
+              version="patch"
             fi
           else
-            version="patch"
+            version="preminor"
           fi
 
           echo "::set-output name=version::$version"
