@@ -40,9 +40,9 @@ jobs:
                 version_type="patch"
               fi
               version="${version_type}"
-            elif [[ "$head_branch" =~ "fix/idex-function" ]]; then
+            elif [[ "$head_branch" =~ ^fix/ ]]; then
               version="prepatch"
-            elif [[ "$head_branch" =~ "feature/" ]]; then
+            elif [[ "$head_branch" =~ ^feature/ ]]; then
               version="preminor"
             else
               version="patch"
@@ -61,9 +61,13 @@ jobs:
           git commit -m "Committing changes before version bump"
       
       - name: Bump Version
-        run: npm version ${{ steps.determine_version.outputs.version }} --allow-same-version
-
-      - name: Push Changes
         run: |
-          git push origin HEAD:${{ github.head_ref }}
-          git push --tags
+          npm version ${{ steps.determine_version.outputs.version }}
+          if [[ "$(git diff --name-only)" != "" ]]; then
+            git add .
+            git commit -m "Bump version to ${{ steps.determine_version.outputs.version }}"
+            git push origin HEAD:${{ github.head_ref }}
+            git push --tags
+          else
+            echo "No changes to commit"
+          fi
