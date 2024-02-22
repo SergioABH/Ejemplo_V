@@ -28,8 +28,6 @@ jobs:
           head_branch=$(jq -r '.head.ref' $GITHUB_EVENT_PATH)
 
           if [[ "$base_branch" == "qa" && "$head_branch" == "main" ]]; then
-            # Lógica para determinar si aumentar como minor o patch
-            # Puedes ajustar esta lógica según tus propias reglas
             version_type="minor"
             if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
               version_type="patch"
@@ -37,8 +35,6 @@ jobs:
             version="${version_type}"
           elif [[ "$base_branch" == "dev" ]]; then
             if [[ "$head_branch" == "qa" ]]; then
-              # Lógica para determinar si aumentar como minor o patch
-              # Puedes ajustar esta lógica según tus propias reglas
               version_type="minor"
               if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
                 version_type="patch"
