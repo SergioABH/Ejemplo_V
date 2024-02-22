@@ -40,9 +40,9 @@ jobs:
                 version_type="patch"
               fi
               version="${version_type}"
-            elif [[ "$head_branch" =~ ^fix/ ]]; then
+            elif [[ "$head_branch" =~ "fix/idex-function" ]]; then
               version="prepatch"
-            elif [[ "$head_branch" =~ ^feature/ ]]; then
+            elif [[ "$head_branch" =~ "feature/" ]]; then
               version="preminor"
             else
               version="patch"
