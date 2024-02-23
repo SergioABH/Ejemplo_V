@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - qa
-      - develop
+      - dev
 
 jobs:
   versionamiento:
