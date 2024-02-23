@@ -1,20 +1,20 @@
-name: Versionamiento Automático
+name: Versioning
 
 on:
   pull_request:
     branches:
       - main
       - qa
-      - develop
+      - dev
 
 jobs:
-  versionamiento:
+  versioning:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Obtener rama de origen
+      - name: Determine origin branch
         id: rama_origen
         run: |
           echo "Rama de origen: ${{ github.head_ref }}"
@@ -22,29 +22,35 @@ jobs:
       - name: Obtener nombre de rama de origen
         id: nombre_rama_origen
         run: |
-          echo "Nombre de rama de origen: ${{ github.head_ref.split('/')[1] }}"
+          echo "Nombre de rama de origen: ${{ github.head_ref.split('\\/')()[1] }}"
 
-      - name: Incrementar versión
+      - name: Bump dev version
         if: ${{ github.ref == 'refs/heads/develop' }}
         run: |
-          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feature/') ? '-preminor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-prepatch' : ''}}
-
-      - name: Incrementar versión
+          npm version ${{
+            steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('feature/') ? '-preminor' :
+            steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('fix/') ? '-prepatch' : ''
+          }}
+          
+      - name: Bump qa version
         if: ${{ github.ref == 'refs/heads/qa' && github.base_ref == 'refs/heads/develop' }}
         run: |
-          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feature/') ? '-minor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-patch' : ''}}
+          npm version ${{
+            steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('feature/') ? '-minor' :
+            steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('fix/') ? '-patch' : ''
+          }}
 
-      - name: Incrementar versión
+      - name: Bump version
         if: ${{ github.ref == 'refs/heads/main' }}
         run: npm version
 
-      - name: Actualizar archivo package.json
+      - name: Actualice package.json
         run: npm install
 
-      - name: Crear commit
+      - name: Create commit
         run: |
-          git add package.json
-          git commit -m "Actualización de versión a $(npm version --no-git-tag)"
+          git add .
+          git commit -m "Version bump to $(npm version --no-git-tag)"
 
-      - name: Push cambios
+      - name: Push changes
         run: git push
