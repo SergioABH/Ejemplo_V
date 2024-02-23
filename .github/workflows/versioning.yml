@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "Rama de origen: ${{ github.head_ref }}"
 
-      - name: Obtener nombre de rama de origen
+      - name: Determine origin branch name
         id: nombre_rama_origen
         run: |
           echo "Nombre de rama de origen: ${{ steps.rama_origen.outputs.github.head_ref.split('/')[2] }}"
@@ -45,7 +45,7 @@ jobs:
           elif [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == fix/* ]]; then
             es_fix=true
           fi
-          npm version ${{ es_feature ? '-minor' : es_fix ? '-patch' : '' }}
+          npm version ${{ es_feature && '-minor' || es_fix && '-patch' || '' }}
 
       - name: Bump version
         if: ${{ github.ref == 'refs/heads/main' }}
