@@ -22,7 +22,7 @@ jobs:
       - name: Obtener nombre de rama de origen
         id: nombre_rama_origen
         run: |
-          echo "Nombre de rama de origen: ${{ github.head_ref.split('\\/')()[1] }}"
+          echo "Nombre de rama de origen: ${{ github.head_ref.split('\\/')'[1] }}"
 
       - name: Bump dev version
         if: ${{ github.ref == 'refs/heads/develop' }}
@@ -35,9 +35,11 @@ jobs:
       - name: Bump qa version
         if: ${{ github.ref == 'refs/heads/qa' && github.base_ref == 'refs/heads/develop' }}
         run: |
+          es_feature=${{ steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('feature/') }}
+          es_fix=${{ steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('fix/') }}
+
           npm version ${{
-            steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('feature/') ? '-minor' :
-            steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('fix/') ? '-patch' : ''
+            es_feature ? '-minor' : es_fix ? '-patch' : ''
           }}
 
       - name: Bump version
