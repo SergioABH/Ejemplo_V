@@ -22,19 +22,29 @@ jobs:
       - name: Obtener nombre de rama de origen
         id: nombre_rama_origen
         run: |
-          echo "Nombre de rama de origen: ${{ github.head_ref.split('/')[2] }}"
+          echo "Nombre de rama de origen: ${{ steps.rama_origen.outputs.github.head_ref.split('/')[2] }}"
 
       - name: Bump dev version
         if: ${{ github.ref == 'refs/heads/develop' }}
         run: |
-          npm version ${{ steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('feature/') ? '-preminor' : steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('fix/') ? '-prepatch' : '' }}
+          version_suffix=""
+          if [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == feature/* ]]; then
+            version_suffix="-preminor"
+          elif [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == fix/* ]]; then
+            version_suffix="-prepatch"
+          fi
+          npm version $version_suffix
           
       - name: Bump qa version
         if: ${{ github.ref == 'refs/heads/qa' && github.base_ref == 'refs/heads/develop' }}
         run: |
-          es_feature=${{ steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('feature/') }}
-          es_fix=${{ steps.nombre_rama_origen.outputs.nombre_rama_origen.startsWith('fix/') }}
-
+          es_feature=false
+          es_fix=false
+          if [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == feature/* ]]; then
+            es_feature=true
+          elif [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == fix/* ]]; then
+            es_fix=true
+          fi
           npm version ${{ es_feature ? '-minor' : es_fix ? '-patch' : '' }}
 
       - name: Bump version
