@@ -1,76 +1,50 @@
-name: Versioning
+name: Versionamiento Automático
 
 on:
   pull_request:
     branches:
-      - '*'
+      - main
+      - qa
+      - develop
 
 jobs:
-  version-and-deploy:
+  versionamiento:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 14
+      - name: Obtener rama de origen
+        id: rama_origen
+        run: |
+          echo "Rama de origen: ${{ github.head_ref }}"
 
-      - name: Install Dependencies
+      - name: Obtener nombre de rama de origen
+        id: nombre_rama_origen
+        run: |
+          echo "Nombre de rama de origen: ${{ github.head_ref.split('/')[1] }}"
+
+      - name: Incrementar versión
+        if: ${{ github.ref == 'refs/heads/develop' }}
+        run: |
+          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feat/') ? '-preminor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-prepatch' : ''}}
+
+      - name: Incrementar versión
+        if: ${{ github.ref == 'refs/heads/qa' && github.base_ref == 'refs/heads/develop' }}
+        run: |
+          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feat/') ? '-minor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-patch' : ''}}
+
+      - name: Incrementar versión
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: npm version
+
+      - name: Actualizar archivo package.json
         run: npm install
 
-      - name: Determine Version
-        id: determine_version
+      - name: Crear commit
         run: |
-          base_branch=$(jq -r '.base.ref' $GITHUB_EVENT_PATH)
-          head_branch=$(jq -r '.head.ref' $GITHUB_EVENT_PATH)
+          git add package.json
+          git commit -m "Actualización de versión a $(npm version --no-git-tag)"
 
-          feature_prefix="feature/"
-          fix_prefix="fix/"
-
-          if [[ "$base_branch" == "dev" ]]; then
-            # Feature branches
-            if [[ "$head_branch" =~ ^$feature_prefix ]]; then
-              version="preminor"
-
-            # Fix branches
-            elif [[ "$head_branch" =~ ^$fix_prefix ]]; then
-              version="prepatch"
-
-            # Other branches on dev
-            else
-              version="patch"
-            fi
-
-          # Branches merged to main
-          elif [[ "$base_branch" == "qa" && "$head_branch" == "main" ]]; then
-            # Check for existing tags
-            if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
-              version="patch"
-            else
-              version="minor"
-            fi
-
-          # Other branches
-          else
-            version="patch"
-          fi
-
-          echo "::set-output name=version::$version"
-
-      - name: Configure Git
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add .
-          git commit -m "Committing changes before version bump"
-
-      - name: Bump Version
-        run: npm version ${{ steps.determine_version.outputs.version }} --allow-same-version
-
-      - name: Push Changes
-        run: |
-          git push origin HEAD:${{ github.head_ref }}
-          git push --tags
+      - name: Push cambios
+        run: git push
