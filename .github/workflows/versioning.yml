@@ -27,12 +27,12 @@ jobs:
       - name: Incrementar versión
         if: ${{ github.ref == 'refs/heads/develop' }}
         run: |
-          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feat/') ? '-preminor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-prepatch' : ''}}
+          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feature/') ? '-preminor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-prepatch' : ''}}
 
       - name: Incrementar versión
         if: ${{ github.ref == 'refs/heads/qa' && github.base_ref == 'refs/heads/develop' }}
         run: |
-          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feat/') ? '-minor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-patch' : ''}}
+          npm version ${{(steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('feature/') ? '-minor' : (steps.nombre_rama_origen.outputs.nombre_rama_origen).startsWith('fix/') ? '-patch' : ''}}
 
       - name: Incrementar versión
         if: ${{ github.ref == 'refs/heads/main' }}
