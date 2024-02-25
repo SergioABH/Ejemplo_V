@@ -1,66 +1,32 @@
-name: Versioning
+name: Versionado Develop
 
 on:
   pull_request:
     branches:
-      - main
-      - qa
-      - dev
+      - develop
 
 jobs:
-  versioning:
+  version:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Determine origin branch
-        id: rama_origen
+      - name: Obtener versión actual
+        id: get_version
+        run: echo "::set-output name=version::$(npm version --no-git-tag)"
+
+      - name: Aumentar versión preminor
+        run: npm version --preminor
+
+      - name: Crear etiqueta
+        run: git tag "v$(npm version --no-git-tag)"
+
+      - name: Actualizar versión en package.json
+        run: npm version --no-git-tag
+
+      - name: Commit y Push
         run: |
-          echo "Rama de origen: ${{ github.head_ref }}"
-
-      - name: Get origin branch name
-        id: nombre_rama_origen
-        run: |
-          echo "Nombre de rama de origen: ${{ steps.rama_origen.outputs.github.head_ref.split('/')[1] }}"
-
-      - name: Bump version based on branch
-        run: |
-          version_suffix=""
-          if [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == feature/* ]]; then
-            version_suffix="-preminor"
-          elif [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == fix/* ]]; then
-            version_suffix="-prepatch"
-          fi
-          npm version $version_suffix
-
-      - name: Bump version for QA branch
-        if: ${{ github.ref == 'refs/heads/qa' && github.base_ref == 'refs/heads/develop' }}
-        run: |
-          es_feature=false
-          es_fix=false
-          if [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == feature/* ]]; then
-            es_feature=true
-          elif [[ "${{ steps.nombre_rama_origen.outputs.nombre_rama_origen }}" == fix/* ]]; then
-            es_fix=true
-          fi
-          npm version ${{ es_feature && '-minor' || es_fix && '-patch' || '' }}
-
-      - name: Bump version for main branch
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: npm version
-
-      - name: Update package.json
-        run: npm install
-
-      - name: Create commit
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add .
-          git commit -m "Version bump to $(npm version --no-git-tag)"
-
-      - name: Push changes
-        run: |
-          git push
+          git add package.json
+          git commit -m "Bump version to v$(npm version --no-git-tag)"
+          git push origin develop
