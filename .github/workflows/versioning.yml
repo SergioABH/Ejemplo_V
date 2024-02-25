@@ -29,4 +29,4 @@ jobs:
         run: |
           git add package.json
           git commit -m "Bump version to v$(npm version --no-git-tag)"
-          git push origin develop
+          git push origin dev
