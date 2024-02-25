@@ -3,7 +3,7 @@ name: Versionado Develop
 on:
   pull_request:
     branches:
-      - dev
+      - develop
 
 jobs:
   version:
@@ -12,24 +12,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Obtain current version
+      - name: Obtener versión actual
         id: get_version
         run: echo "::set-output name=version::$(npm version --no-git-tag)"
 
-      - name: Increase preminor version (adjust for your versioning strategy)
+      - name: Aumentar versión preminor (adjust for your versioning strategy)
         run: npm version --preminor
 
-      - name: Create tag
+      - name: Crear etiqueta
         run: |
           version=$(npm version --no-git-tag)
           tag="v${version%%#*}"
           git tag -m "Bump version to $tag" "$tag"
 
-      - name: Update version in package.json
+      - name: Actualizar versión en package.json
         run: npm version --no-git-tag
 
-      - name: Commit and Push
+      - name: Commit y Push
         run: |
-          git add package.json
+          git add .
           git commit -m "Bump version to $tag"
-          git push origin dev
+          git push origin develop
