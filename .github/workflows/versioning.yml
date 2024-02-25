@@ -12,21 +12,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Obtener versión actual
+      - name: Obtain current version
         id: get_version
         run: echo "::set-output name=version::$(npm version --no-git-tag)"
 
-      - name: Aumentar versión preminor
+      - name: Increase preminor version (adjust for your versioning strategy)
         run: npm version --preminor
 
-      - name: Crear etiqueta
-        run: git tag "v$(npm version --no-git-tag)"
+      - name: Create tag
+        run: |
+          version=$(npm version --no-git-tag)
+          tag="v${version%%#*}"
+          git tag -m "Bump version to $tag" "$tag"
 
-      - name: Actualizar versión en package.json
+      - name: Update version in package.json
         run: npm version --no-git-tag
 
-      - name: Commit y Push
+      - name: Commit and Push
         run: |
           git add package.json
-          git commit -m "Bump version to v$(npm version --no-git-tag)"
+          git commit -m "Bump version to $tag"
           git push origin dev
