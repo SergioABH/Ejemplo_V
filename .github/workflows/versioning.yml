@@ -1,62 +1,32 @@
-name: Versioning
+name: Versionado Develop
 
 on:
   pull_request:
     branches:
-      - '*'
+      - develop
 
 jobs:
-  version-and-deploy:
+  version:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 14
+      - name: Obtener versión actual
+        id: get_version
+        run: echo "::set-output name=version::$(npm version --no-git-tag)"
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Aumentar versión preminor
+        run: npm version --preminor
 
-      - name: Determine Version
-        id: determine_version
+      - name: Crear etiqueta
+        run: git tag "v$(npm version --no-git-tag)"
+
+      - name: Actualizar versión en package.json
+        run: npm version --no-git-tag
+
+      - name: Commit y Push
         run: |
-          base_branch=$(jq -r '.base.ref' $GITHUB_EVENT_PATH)
-          head_branch=$(jq -r '.head.ref' $GITHUB_EVENT_PATH)
-
-          if [[ "$base_branch" == "qa" && "$head_branch" == "main" ]]; then
-            version_type="minor"
-            if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
-              version_type="patch"
-            fi
-            version="${version_type}"
-          elif [[ "$base_branch" == "dev" ]]; then
-            if [[ "$head_branch" == "qa" ]]; then
-              version_type="minor"
-              if [[ "$(git describe --tags --abbrev=0)" == "v"* ]]; then
-                version_type="patch"
-              fi
-              version="${version_type}"
-            elif [[ "$head_branch" =~ ^fix\/.*$ ]]; then
-              version="prepatch"
-            elif [[ "$head_branch" =~ ^feature\/.*$ ]]; then
-              version="preminor"
-            else
-              version="patch"
-            fi
-          else
-            version="patch"
-          fi
-
-          echo "::set-output name=version::$version"
-
-      - name: Bump Version
-        run: npm version ${{ steps.determine_version.outputs.version }} --allow-same-version
-
-      - name: Push Changes
-        run: |
-          git push origin $GITHUB_HEAD_REF
-          git push --tags
+          git add package.json
+          git commit -m "Bump version to v$(npm version --no-git-tag)"
+          git push origin develop
