@@ -3,7 +3,7 @@ name: Versionado Develop
 on:
   pull_request:
     branches:
-      - develop
+      - dev
 
 jobs:
   version:
